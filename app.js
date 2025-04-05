@@ -23,14 +23,14 @@ app.post('/fetch', async (req, res) => {
     const { url } = req.body;
     
     if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
+      return res.status(400).json({ success: false, error: 'URL is required' });
     }
 
     let baseUrl;
     try {
       baseUrl = new URL(url);
     } catch (e) {
-      return res.status(400).json({ error: 'Invalid URL' });
+      return res.status(400).json({ success: false, error: 'Invalid URL' });
     }
 
     // Fetch the content from the provided URL
@@ -40,7 +40,7 @@ app.post('/fetch', async (req, res) => {
 
     if (!contentType || !contentType.includes('text/html')) {
       console.warn('Content type is not HTML');
-      return res.status(400).json({ error: 'Invalid content type' });
+      return res.status(400).json({ success: false, error: 'Invalid content type' });
     }
 
     // Use cheerio to parse HTML and selectively replace text content, not URLs
@@ -120,12 +120,18 @@ app.post('/fetch', async (req, res) => {
   } catch (error) {
     console.error('Error fetching URL:', error.message);
     return res.status(500).json({ 
+      success: false,
       error: `Failed to fetch content: ${error.message}` 
     });
   }
 });
 
+// Export the app instance *before* starting the server
+module.exports = app;
+
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Faleproxy server running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Faleproxy server running at http://localhost:${PORT}`);
+  });
+}
